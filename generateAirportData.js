@@ -3,19 +3,13 @@ var artccAirports = require('./ARTCCairportsList.json');
 var fs = require('fs');
 var znyAirporsWithCharts = {};
 
-for(var state in allAirports)
+for(const airport in allAirports)
 {
-    for(var city in allAirports[state])
+    for( i in artccAirports.airports)
     {
-        for(var airport in allAirports[state][city])
+        if(allAirports[airport].faaID == artccAirports.airports[i])
         {
-            for(var i in artccAirports.airports)
-            {
-                if (allAirports[state][city][airport].faaID == artccAirports.airports[i])
-                {
-                    znyAirporsWithCharts[i] = allAirports[state][city][airport];
-                }
-            }
+            znyAirporsWithCharts[i] = allAirports[airport];
         }
     }
 }
