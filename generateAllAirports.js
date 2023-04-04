@@ -1,39 +1,41 @@
-var fs = require('fs');
-var parsedJson = require('./d-TPP_metafile.json');
-var allAirports = {};
+let fs = require('fs');
+let parsedJson = require('./d-TPP_metafile.json');
+let allAirports = [];
 //loop through all states
-for(var stateIndex in parsedJson.digital_tpp.state_code)
+for(const stateIndex in parsedJson.digital_tpp.state_code)
 {
     //stateID is the 2 letter identifer for each state
-    var stateID =parsedJson.digital_tpp.state_code[stateIndex]['@_ID'];
+    let stateID =parsedJson.digital_tpp.state_code[stateIndex]['@_ID'];
+
+    //TODO: something about the way DC's data is presented is breaking everything. there is only three (3) airports listed (none of which are in DC proper, but whatever) so we can skip for now
     if(stateID == "DC") continue;
 
-    //console.log("\n--- " + parsedJson.digital_tpp.state_code[stateIndex]['@_state_fullname']);
-
-    allAirports[stateID] = {};
     //for every city in that state
-    for(var cityIndex in parsedJson.digital_tpp.state_code[stateIndex].city_name)
+    for(const cityIndex in parsedJson.digital_tpp.state_code[stateIndex].city_name)
     {
-        var airportName, airportID, chartRefNum, cityName = parsedJson.digital_tpp.state_code[stateIndex].city_name[cityIndex]['@_ID'];
-        //console.log(parsedJson.digital_tpp.state_code[stateIndex].city_name[cityIndex]['@_ID'] + ", " + parsedJson.digital_tpp.state_code[stateIndex]['@_ID']);
+        let cityName = parsedJson.digital_tpp.state_code[stateIndex].city_name[cityIndex]['@_ID'];
+
         //if the airport's identifer exists. this will only be true if there is one airport in the city
-        allAirports[stateID][cityName] = [];
         if(parsedJson.digital_tpp.state_code[stateIndex].city_name[cityIndex].airport_name['@_alnum'])
         {
-
-            allAirports[stateID][cityName][0] =
+            let procedureNames = [];
+            for(var chart in parsedJson.digital_tpp.state_code[stateIndex].city_name[cityIndex].airport_name.record)
             {
+                //console.log(chart);
+                procedureNames.push(parsedJson.digital_tpp.state_code[stateIndex].city_name[cityIndex].airport_name.record[chart]['chart_name']);
+            }
+
+            allAirports.push
+            ({
                 'name' : parsedJson.digital_tpp.state_code[stateIndex].city_name[cityIndex].airport_name['@_ID'],
                 'faaID' : parsedJson.digital_tpp.state_code[stateIndex].city_name[cityIndex].airport_name['@_apt_ident'],
                 'icaoID' : parsedJson.digital_tpp.state_code[stateIndex].city_name[cityIndex].airport_name['@_icao_ident'],
                 'refNum' : parsedJson.digital_tpp.state_code[stateIndex].city_name[cityIndex].airport_name['@_alnum'].toString().padStart(5,'0'),
-                'charts' : []
-            }
-            for(var chart in parsedJson.digital_tpp.state_code[stateIndex].city_name[cityIndex].airport_name.record)
-            {
-                //console.log(chart);
-                allAirports[stateID][cityName][0]['charts'][chart] = parsedJson.digital_tpp.state_code[stateIndex].city_name[cityIndex].airport_name.record[chart]['chart_name'];
-            }
+                'state' : stateID,
+                'stateLong' : parsedJson.digital_tpp.state_code[stateIndex]['@_state_fullname'],
+                'city' : cityName,
+                'procedures' : procedureNames
+            });
 
 
             //if the city has more than one airport
@@ -41,26 +43,25 @@ for(var stateIndex in parsedJson.digital_tpp.state_code)
         {
             for(k in parsedJson.digital_tpp.state_code[stateIndex].city_name[cityIndex].airport_name)
             {
-
-                allAirports[stateID][cityName][k] =
-                {
-                    'name' : parsedJson.digital_tpp.state_code[stateIndex].city_name[cityIndex].airport_name[k]['@_ID'],
-                    'faaID' : parsedJson.digital_tpp.state_code[stateIndex].city_name[cityIndex].airport_name[k]['@_apt_ident'],
-                    'icaoID' : parsedJson.digital_tpp.state_code[stateIndex].city_name[cityIndex].airport_name[k]['@_icao_ident'],
-                    'refNum' : parsedJson.digital_tpp.state_code[stateIndex].city_name[cityIndex].airport_name[k]['@_alnum'].toString().padStart(5,'0'),
-                    'charts' : []
-                }
+                let procedureNames = [];
                 for(var chart in parsedJson.digital_tpp.state_code[stateIndex].city_name[cityIndex].airport_name[k].record)
                 {
                     //console.log(chart);
-                    allAirports[stateID][cityName][0]['charts'][chart] = parsedJson.digital_tpp.state_code[stateIndex].city_name[cityIndex].airport_name[k].record[chart]['chart_name'];
+                    procedureNames.push(parsedJson.digital_tpp.state_code[stateIndex].city_name[cityIndex].airport_name[k].record[chart]['chart_name']);
                 }
 
-                // airportName = parsedJson.digital_tpp.state_code[stateIndex].city_name[cityIndex].airport_name[k]['@_ID'];
-                // airportID = parsedJson.digital_tpp.state_code[stateIndex].city_name[cityIndex].airport_name[k]['@_apt_ident'];
-                // chartRefNum = parsedJson.digital_tpp.state_code[stateIndex].city_name[cityIndex].airport_name[k]['@_alnum'];
-                //print the airport info
-                //console.log(`   ${airportName} (${airportID}) - ${chartRefNum.toString().padStart(5,'0')}`);
+                allAirports.push
+                ({
+                    'name' : parsedJson.digital_tpp.state_code[stateIndex].city_name[cityIndex].airport_name[k]['@_ID'],
+                'faaID' : parsedJson.digital_tpp.state_code[stateIndex].city_name[cityIndex].airport_name[k]['@_apt_ident'],
+                'icaoID' : parsedJson.digital_tpp.state_code[stateIndex].city_name[cityIndex].airport_name[k]['@_icao_ident'],
+                'refNum' : parsedJson.digital_tpp.state_code[stateIndex].city_name[cityIndex].airport_name[k]['@_alnum'].toString().padStart(5,'0'),
+                'state' : stateID,
+                'stateLong' : parsedJson.digital_tpp.state_code[stateIndex]['@_state_fullname'],
+                'city' : cityName,
+                'procedures' : procedureNames
+                });
+
             }
         }
         
@@ -73,5 +74,3 @@ try {
 } catch (err) {
     console.error(err);
 }
-// console.log(JSON.stringify(allAirports));
-//console.log(parsedJson.digital_tpp.state_code[31].city_name[5]);
